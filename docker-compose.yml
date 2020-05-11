@@ -2,10 +2,8 @@ version: '3.7'
 
 services:
   web:
-    build: 
-      context: .
-      dockerfile: Dockerfile
-    command: python manage.py runserver 0.0.0.0:8000
+    build: ./app
+    command: python manage.py runserver 0.0.0.0:8000 #python manage.py makemigrations && python manage.py migrate && 
     volumes:
       - ./app/:/usr/src/app/
     ports:
@@ -14,14 +12,24 @@ services:
       - ./.env.dev
     depends_on:
       - db
+
   db:
-    image: postgres:12.0-alpine
+    container_name: db
+    image: mysql:5.7.5
+    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8 --collation-server=utf8_general_ci
+    ports:
+      - 3306:3306
     volumes:
-      - postgres_data:/var/lib/postgresql/data/
+      - mysql_data:/var/lib/db/mysql/
     environment:
-      - POSTGRES_USER=hello_django
-      - POSTGRES_PASSWORD=hello_django
-      - POSTGRES_DB=hello_django_dev
+      MYSQL_ROOT_PASSWORD: 1
+      MYSQL_USER: hello_django
+      MYSQL_PASSWORD: 1
+      MYSQL_DATABASE: hello_django_db
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
     
 volumes:
-  postgres_data:
+  mysql_data:
